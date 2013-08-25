@@ -1,4 +1,4 @@
-require "generic_dal"
+require "crud-service"
 
 describe CrudService::GenericDal do
   before(:each) do

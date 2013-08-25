@@ -1,4 +1,4 @@
-require "generic_service"
+require "crud-service"
 
 describe CrudService::GenericService do
   before(:each) do
