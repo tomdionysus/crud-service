@@ -1,4 +1,4 @@
-module Log
+module CrudService
   class GenericLog
     def debug(str)
       puts "DEBUG: #{str}"

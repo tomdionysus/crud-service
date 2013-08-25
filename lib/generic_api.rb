@@ -1,4 +1,4 @@
-module API
+module CrudService
   class GenericApi
 
     def self.crud_api(sinatra, service_name, name, primary_key_name)

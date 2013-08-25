@@ -1,4 +1,4 @@
-module Service
+module CrudService
   class GenericService
 
     attr_accessor :dal, :log

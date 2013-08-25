@@ -1,11 +1,11 @@
 require "generic_service"
 
-describe Service::GenericService do
+describe CrudService::GenericService do
   before(:each) do
-    @mock_dal = double('DAL::GenericDal')
+    @mock_dal = double('CrudService::GenericDal')
     @mock_log = double('Log')
 
-    @generic_service = Service::GenericService.new(@mock_dal, @mock_log)
+    @generic_service = CrudService::GenericService.new(@mock_dal, @mock_log)
   end
 
   describe '#initialize' do 

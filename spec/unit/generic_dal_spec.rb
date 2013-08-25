@@ -1,12 +1,12 @@
 require "generic_dal"
 
-describe DAL::GenericDal do
+describe CrudService::GenericDal do
   before(:each) do
     @mock_mysql = get_mysql_mock
     @mock_memcache = double('Memcache')
     @mock_log = double('Log')
 
-    @generic_dal = DAL::GenericDal.new(@mock_mysql, @mock_memcache, @mock_log)
+    @generic_dal = CrudService::GenericDal.new(@mock_mysql, @mock_memcache, @mock_log)
     @generic_dal.table_name = "testtable"
   end
 

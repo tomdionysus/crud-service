@@ -1,7 +1,7 @@
 require 'json'
 require 'mysql2'
 
-module DAL
+module CrudService
 	class GenericDal
 
     attr_accessor :mysql, :memcache, :log, :table_name, :fields, :relations, :primary_key
