@@ -1,1 +1,6 @@
-crud-service-*
+# Test related output
+/spec/coverage
+/spec/reports
+
+# Environment variables
+/.env

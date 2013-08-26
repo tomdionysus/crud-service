@@ -2,13 +2,11 @@ require 'json'
 require 'mysql2'
 
 module CrudService
-
   # This class creates an instance of a generic DAL (Data Access Layer) with cache 
   # capability from the provided mysql client, logger and optionally memcache client. 
   # Your should extend this class to provide configuration for your dal, please see 
   # the README file at http://github.com/tomcully/crud-service
-	class GenericDal
-
+	class Dal
     attr_accessor :mysql, :memcache, :log, :table_name, :fields, :relations, :primary_key
 
     # Create an instance.
@@ -20,7 +18,6 @@ module CrudService
 
     # Execute a Query, reading from cache if enabled.
     def cached_query(query, tables)
-
       unless @memcache.nil?
 
         unless tables.include? @table_name
@@ -81,7 +78,7 @@ module CrudService
     def valid_query?(query)
       return false if query.nil?
       return true if query.keys.length == 0
-      
+
       query.each_key do |k|
         return false if !@fields.has_key?(k) and k!='include' and k!='exclude'
       end
@@ -384,7 +381,7 @@ module CrudService
     def valid_insert?(data)
       return false if data.nil?
       return false if data.keys.length == 0
-      
+
       # Required fields
       @fields.each do |k,s|
         return false if s.has_key?(:required) and s[:required] == true and !data.has_key?(k)
@@ -452,7 +449,7 @@ module CrudService
     # Delete a record by its primary key from data
     def delete_by_primary_key(primary_key)
       query = "DELETE FROM `#{@table_name}` WHERE "+build_where({@primary_key => primary_key})
-      
+
       begin
         queryresult = @mysql.query(query)
       rescue Exception => e
