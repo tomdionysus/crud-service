@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.test_files  = Dir.glob('spec/**/*.rb')
   s.homepage    = 'http://github.com/tomcully/crud-service'
   s.license     = 'Apache2'
-  s.required_ruby_version = '>= 1.9'
+  s.required_ruby_version = '>= 1.9.2'
   s.add_development_dependency "coveralls"
   s.add_development_dependency "dotenv"
   s.add_development_dependency "rake"
