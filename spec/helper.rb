@@ -1,5 +1,7 @@
 require "coveralls"
 Coveralls.wear!
+SimpleCov.coverage_dir('spec/coverage')
+
 require "dotenv"
 Dotenv.load
 
