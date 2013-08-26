@@ -1,15 +1,15 @@
 crud-service
 ============
 
-# Introduction
+## Introduction
 
-crud-service provides classes to implement a basic JSON CRUD service amnd CrudService using Sinatra, MySQL and memcached.
+crud-service provides classes to implement a basic JSON CRUD service using Sinatra, MySQL and memcached.
 
-# Usage
+## Usage
 
 The gem is intended to provide a set of classes to produce a simple MySQL/Memcached backed RESTful CRUD API for a given number of MySQL entities.
 
-# Getting Started
+## Getting Started
 
 You should have:
 
@@ -17,9 +17,9 @@ You should have:
 * (Optional) An available Memcached instance.
 * An empty Sinatra app
 
-# Classes
+## Classes
 
-## GenericLog
+### GenericLog
 
 CrudService::GenericLog provides instances of a generic logger with the following methods:
 
@@ -29,9 +29,9 @@ CrudService::GenericLog provides instances of a generic logger with the followin
 
 You can provide instances of this class - or any class that supports these methods - to GenericDal and GenericService.
 
-logger = CrudService::GenericLog.new
+	logger = CrudService::GenericLog.new
 
-## GenericDal
+### GenericDal
 
 GenericDal instances provide a DAL layer for a specific MySQL table, including optional write through Memcached caching using key expiry.
 
@@ -85,7 +85,7 @@ Then, instantiate the class passing your MySQL client, a logger and optionally y
 
 If you would like to use MySQL query caching, or disable memcache functionality, pass nil as the memcache parameter.
 
-## GenericService
+### GenericService
 
 GenericService provides a set of methods with basic CRUD operations, given a DAL instance and a logger.
 
@@ -95,7 +95,7 @@ To use CrudService::GenericService, instantiate the class with the following par
 
 The dal_instance should be an instance of CrudService::GenericDal
 
-## GenericAPI
+### GenericAPI
 
 GenericAPI configures a sinatra class for a specific service layer. The crud_api method takes a sinatra instance, a setting key symbol for the DAL instance, the resource name, and the primary key field name in the DAL, and sets up GET, POST, PUT and DELETE routes at the resource specified.
 
@@ -116,13 +116,13 @@ GenericAPI configures a sinatra class for a specific service layer. The crud_api
 
 The routes are set up as follows (from the above example):
 
-GET    /countries - Returns all records from the associated DAL
-GET    /countries/:code_alpha_2 - Returns the specific record with the associated primary key
-POST   /countries - Creates a record from the request body JSON
-PUT    /countries/:code_alpha_2 - Updates a record with the associated primary key from the request body JSON, only updating the supplied fields
-DELETE /countries/:code_alpha_2 - Deletes the specific record with the associated primary key
+* GET    /countries - Returns all records from the associated DAL
+* GET    /countries/:code_alpha_2 - Returns the specific record with the associated primary key
+* POST   /countries - Creates a record from the request body JSON
+* PUT    /countries/:code_alpha_2 - Updates a record with the associated primary key from the request body JSON, only updating the supplied fields
+* DELETE /countries/:code_alpha_2 - Deletes the specific record with the associated primary key
 
-Routes return 200 / 204 on OK, 400 if validation fails, or 404 if the record cannot be found. In addition, query parameters can be passed to the GET routes as follows:
+Routes return HTTP Status Codes 200 / 204 on OK, 400 if validation fails, or 404 if the record cannot be found. In addition, query parameters can be passed to the GET routes as follows:
 
 Return only records where all fields equal the stated values:
 
@@ -143,15 +143,25 @@ These query parameters can be combined:
 
 	?region_code=002&include=subdivisions,currency&exclude=code_alpha_3,code_numeric
 
-# Notes
+## Notes
 
 * All route keys and queries are SQL escaped/sanitized.
 * The classes are UTF-8 compatible.
 * Length and non-null validation is performed according to the field definitions in the DAL.
 
-# Caveats
+## Dependencies
+
+crud-service requires the following gems to run:
+
+* json
+* sinatra
+* dalli
+* mysql2
+
+## Caveats
 
 * Please note crud-service performs no kind of authentication, and you should implement authentication for reads and writes either in your sinatra class, or by extending CrudService::GenericApi.
+* Cache expiry after a write is based on table versions, stored in memcache. It is important that all running instances of your service use the same memcache cluster, or instances using a different cache cluster may return stale data after a write a service not using that cluster. Workaround: Disable memcache as detailed above and use MySQL query caching at the DB server level.
 
 
 
