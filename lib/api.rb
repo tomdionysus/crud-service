@@ -1,9 +1,7 @@
 module CrudService
-
   # This class provides a static method, crud_api, to configure a sinatra class with the
   # provided service, resource and primary key.
-  class GenericApi
-
+  class Api
     def self.crud_api(sinatra, service_name, name, primary_key_name)
 
       sinatra.options '/'+name do
@@ -55,7 +53,7 @@ module CrudService
       sinatra.put '/'+name+'/:'+primary_key_name do
         # Must Exist
         return 404 unless settings.send(service_name).exists_by_primary_key?(params[:code])
-        
+
         # Get The Data
         begin
           data = JSON.parse(request.body.read)
@@ -65,7 +63,7 @@ module CrudService
 
         # Valid Update?
         return 400 unless settings.send(service_name).valid_update?(data)
-        
+
         # Do Update
         record = settings.send(service_name).update_by_primary_key(params[:code],data)
 

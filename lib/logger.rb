@@ -1,7 +1,6 @@
 module CrudService
-
   # This class provides a Generic Logger.
-  class GenericLog
+  class Logger
     # Log a debug message
     def debug(str)
       puts "DEBUG: #{str}"
