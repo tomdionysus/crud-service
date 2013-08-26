@@ -1,4 +1,4 @@
-CRUD Service
+crud-service
 ============
 
 # Introduction

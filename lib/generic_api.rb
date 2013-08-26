@@ -1,4 +1,7 @@
 module CrudService
+
+  # This class provides a static method, crud_api, to configure a sinatra class with the
+  # provided service, resource and primary key.
   class GenericApi
 
     def self.crud_api(sinatra, service_name, name, primary_key_name)

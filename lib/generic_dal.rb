@@ -2,11 +2,17 @@ require 'json'
 require 'mysql2'
 
 module CrudService
+
+  # This class creates an instance of a generic DAL (Data Access Layer) with cache 
+  # capability from the provided mysql client, logger and optionally memcache client. 
+  # Your should extend this class to provide configuration for your dal, please see 
+  # the README file at http://github.com/tomcully/crud-service
 	class GenericDal
 
     attr_accessor :mysql, :memcache, :log, :table_name, :fields, :relations, :primary_key
 
-    def initialize(mysql, memcache, log) 
+    # Create an instance.
+    def initialize(mysql, memcache = nil, log) 
       @mysql = mysql
       @memcache = memcache
       @log = log
