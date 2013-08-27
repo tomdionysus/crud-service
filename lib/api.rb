@@ -1,87 +1,128 @@
 module CrudService
-  # This class provides a static method, crud_api, to configure a sinatra class with the
-  # provided service, resource and primary key.
-  class Api
-    def self.crud_api(sinatra, service_name, name, primary_key_name)
+  module Api
+    # This mixin provides a static method, crud_api, to configure a sinatra class with the
+    # provided resource name, service and api_options
+    def crud_api(resource_name, service_name, primary_key_name, api_options = {})
 
-      sinatra.options '/'+name do
-        204
+      defaults = {
+        :enable_read => true,
+        :enable_write => true,
+        :enable_options => true,
+        :enable_get_all => true,
+        :enable_get => true,
+        :enable_post => true,
+        :enable_put => true,
+        :enable_delete => true,
+      }
+      api_options.merge!(defaults) { |key, v1, v2| v1 }
+
+      if api_options[:enable_options]
+        options '/'+resource_name do
+          204
+        end
       end
 
-      sinatra.post '/'+name do
-        # Get The data
-        begin
-          data = JSON.parse(request.body.read)
-        rescue Exception => e
-          return 400
+      if api_options[:enable_write]
+
+        if api_options[:enable_post]
+          post '/'+resource_name do
+            service = settings.send(service_name)
+
+            # Get The data
+            begin
+              data = JSON.parse(request.body.read)
+            rescue Exception => e
+              return 400
+            end
+
+            # Valid POST?
+            return 400 unless service.valid_insert?(data)
+
+            # Already Exists?
+            return 409 if service.exists_by_primary_key?(data['code'])
+
+            # Do Insert
+            record = service.insert(data)
+
+            # Other Error
+            return 500 if record == false
+
+            # Output new record
+            JSON.fast_generate record
+          end
         end
 
-        # Valid POST?
-        return 400 unless settings.send(service_name).valid_insert?(data)
+        if api_options[:enable_put]
+          put '/'+resource_name+'/:'+primary_key_name do
+            service = settings.send(service_name)
 
-        # Already Exists?
-        return 409 if settings.send(service_name).exists_by_primary_key?(data['code'])
+            # Must Exist
+            return 404 unless service.exists_by_primary_key?(params[:code])
 
-        # Do Insert
-        record = settings.send(service_name).insert(data)
+            # Get The Data
+            begin
+              data = JSON.parse(request.body.read)
+            rescue Exception => e
+              return 400
+            end
 
-        # Other Error
-        return 500 if record == false
+            # Valid Update?
+            return 400 unless service.valid_update?(data)
 
-        # Output new record
-        JSON.fast_generate record
-      end
+            # Do Update
+            record = service.update_by_primary_key(params[:code],data)
 
-      sinatra.get '/'+name do
-        sanitize_params(params)
-        # Check query validity
-        return 400 unless settings.send(service_name).valid_query?(params)
+            # Other Error
+            return 500 if record.nil?
 
-        # Return Regions on Query
-        JSON.fast_generate settings.send(service_name).get_all_by_query(params)
-      end
-
-      sinatra.get '/'+name+'/:'+primary_key_name do
-        sanitize_params(params)
-        return 400 unless settings.send(service_name).valid_query?(params)
-
-        record = settings.send(service_name).get_one_by_query(params)
-        return 404 if record.nil?
-        JSON.fast_generate record
-      end
-
-      sinatra.put '/'+name+'/:'+primary_key_name do
-        # Must Exist
-        return 404 unless settings.send(service_name).exists_by_primary_key?(params[:code])
-
-        # Get The Data
-        begin
-          data = JSON.parse(request.body.read)
-        rescue Exception => e
-          return 400
+            # Return new Region
+            JSON.fast_generate record
+          end
         end
 
-        # Valid Update?
-        return 400 unless settings.send(service_name).valid_update?(data)
+        if api_options[:enable_delete]
+          delete '/'+resource_name+'/:'+primary_key_name do
+            service = settings.send(service_name)
 
-        # Do Update
-        record = settings.send(service_name).update_by_primary_key(params[:code],data)
+            # Must Exist
+            return 404 unless service.exists_by_primary_key?(params[:code])
 
-        # Other Error
-        return 500 if record.nil?
+            # Do Delete
+            return 400 unless service.delete_by_primary_key(params[:code])
 
-        # Return new Region
-        JSON.fast_generate record
+            204
+          end
+        end
+
       end
 
-      sinatra.delete '/'+name+'/:'+primary_key_name do
-        # Must Exist
-        return 404 unless settings.send(service_name).exists_by_primary_key?(params[:code])
+      if api_options[:enable_read]
 
-        # Do Delete
-        return 400 unless settings.send(service_name).delete_by_primary_key(params[:code])
+        if api_options[:enable_get]
+          get '/'+resource_name do
+            service = settings.send(service_name)
 
-        204
+            sanitize_params(params)
+            # Check query validity
+            return 400 unless service.valid_query?(params)
+
+            # Return Regions on Query
+            JSON.fast_generate service.get_all_by_query(params)
+          end
+        end
+
+        if api_options[:enable_get_all]
+          get '/'+resource_name+'/:'+primary_key_name do
+            service = self.settings.send(service_name)
+
+            sanitize_params(params)
+            return 400 unless service.valid_query?(params)
+
+            record = service.get_one_by_query(params)
+            return 404 if record.nil?
+            JSON.fast_generate record
+          end
+        end
       end
     end
   end

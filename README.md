@@ -95,12 +95,12 @@ The dal_instance should be an instance of CrudService::Dal
 
 ### Api
 
-`Api` configures a sinatra class for a specific service layer. The crud_api method takes a Sinatra instance,
-a setting key symbol for the DAL instance, the resource name, and the primary key field name in the DAL, and
-sets up GET, POST, PUT and DELETE routes at the resource specified.
+The `Api` sinatra extension adds the `crud_api` method that takes the resource name, a setting key symbol for the DAL instance, and the primary key field name in the DAL, and sets up GET, POST, PUT and DELETE routes at the resource specified in the options.
 
 ```ruby
 class GeoApi < Sinatra::Base
+
+    register CrudService::Api
 
     before do
       content_type 'application/json; charset=utf-8'
@@ -109,11 +109,27 @@ class GeoApi < Sinatra::Base
       response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
     end
 
-    CrudService::Api.crud_api(self, :dal_instance, 'countries', 'code_alpha_2')
+    crud_api 'countries', :dal_instance, 'code_alpha_2', :enable_write => false
 
 end
 
 GeoApi.set :dal_instance, dal_instance
+```
+
+The crud_api takes options as follows, these are the defaults:
+
+```ruby
+options = {
+  :enable_read => true,     # Enable all reads (GET)
+  :enable_write => true,    # Enable all writes (POST, PUT and DELETE)
+
+  :enable_options => true,  # Enable OPTIONS
+  :enable_get_all => true,  # Enable GET /resource
+  :enable_get => true,      # Enable GET /resource/:primary_key
+  :enable_post => true,     # Enable POST /resource
+  :enable_put => true,      # Enable PUT /resource/:primary_key
+  :enable_delete => true,   # Enable DELETE /resource/:primary_key
+}
 ```
 
 The routes are set up as follows (from the above example):
@@ -135,7 +151,7 @@ Return only records where all fields equal the stated values:
 Returns records with relation subobjects/arrays as defined in the DAL:
 
 	  ?include=regions
-	  ?include=regions, currency
+	  ?include=regions,currency
 
 Returns records without the named field or fields:
 
