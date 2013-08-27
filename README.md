@@ -1,7 +1,7 @@
 crud-service
 ============
 
-[![Build Status](https://travis-ci.org/tomcully/crud-service.png?branch=master)](https://travis-ci.org/tomcully/crud-service)
+[![Build Status](https://travis-ci.org/tomcully/crud-service.png?branch=master)](https://travis-ci.org/tomcully/crud-service) [![Gem Version](https://badge.fury.io/rb/crud-service.png)](http://rubygems.org/gems/crud-service)
 
 ## Introduction
 
