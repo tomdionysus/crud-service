@@ -23,14 +23,15 @@ You should have:
 
 `CrudService::Logger` provides instances of a generic logger with the following methods:
 
-* `log(message)`
-* `warn(message)`
+* `debug(message)`
+* `info(message)`
 * `error(message)`
+* `warn(message)`
 
 You can provide instances of this class - or any class that supports these methods - to `Dal` and `Service`.
 
 ```ruby
-	logger = CrudService::GenericLog.new
+logger = CrudService::GenericLog.new
 ```
 
 ### Dal
@@ -40,53 +41,53 @@ You can provide instances of this class - or any class that supports these metho
 To use `CrudService::Dal`, extend the class and add configuration for your own database schema like the following:
 
 ```ruby
-	class CountryDal < CrudService::Dal
+class CountryDal < CrudService::Dal
 
-	    def initialize(mysql, memcache, log) 
-	      super mysql, memcache, log
-	      @table_name = 'countries'
-	      @fields = {
-	        "code_alpha_2"          => { :type=>:string, :length=>2, :required=>true },
-	        "code_alpha_3"          => { :type=>:string, :length=>3, :required=>true },
-	        "code_numeric"          => { :type=>:string, :length=>3, :required=>true },
-	        "name"                  => { :type=>:string, :length=>128, :required=>true },
-	        "default_currency_code" => { :type=>:string, :length=>3 },
-	      }
-	      @relations = {
-	        "currency" => { 
-	          :type         => :has_one, 
-	          :table        => 'currencies',
-	          :table_key    => 'code', 
-	          :this_key     => 'default_currency_code',
-	          :table_fields => 'code,name,symbol'
-	        },
-	        "subdivisions" => { 
-	          :type         => :has_many, 
-	          :table        => 'subdivisions',
-	          :table_key    => 'country_code_alpha_2', 
-	          :this_key     => 'code_alpha_2',
-	          :table_fields => 'code,name,category,parent_code,timezone_code'
-	        },
-	        "regions" => { 
-	          :type         => :has_many_through, 
-	          :table        => 'regions',
-	          :link_table   => 'region_countries',
-	          :link_key     => 'country_code_alpha_2',
-	          :link_field   => 'region_code',
-	          :table_key    => 'code', 
-	          :this_key     => 'code_alpha_2',
-	          :table_fields => 'code,name,parent_code',
-	        },
-	      }
-	      @primary_key = 'code_alpha_2'
-	    end
-	end
+    def initialize(mysql, memcache, log) 
+      super mysql, memcache, log
+      @table_name = 'countries'
+      @fields = {
+        "code_alpha_2"          => { :type=>:string, :length=>2, :required=>true },
+        "code_alpha_3"          => { :type=>:string, :length=>3, :required=>true },
+        "code_numeric"          => { :type=>:string, :length=>3, :required=>true },
+        "name"                  => { :type=>:string, :length=>128, :required=>true },
+        "default_currency_code" => { :type=>:string, :length=>3 },
+      }
+      @relations = {
+        "currency" => { 
+          :type         => :has_one, 
+          :table        => 'currencies',
+          :table_key    => 'code', 
+          :this_key     => 'default_currency_code',
+          :table_fields => 'code,name,symbol'
+        },
+        "subdivisions" => { 
+          :type         => :has_many, 
+          :table        => 'subdivisions',
+          :table_key    => 'country_code_alpha_2', 
+          :this_key     => 'code_alpha_2',
+          :table_fields => 'code,name,category,parent_code,timezone_code'
+        },
+        "regions" => { 
+          :type         => :has_many_through, 
+          :table        => 'regions',
+          :link_table   => 'region_countries',
+          :link_key     => 'country_code_alpha_2',
+          :link_field   => 'region_code',
+          :table_key    => 'code', 
+          :this_key     => 'code_alpha_2',
+          :table_fields => 'code,name,parent_code',
+        },
+      }
+      @primary_key = 'code_alpha_2'
+    end
+end
 ```
 
 Then, instantiate the class passing your MySQL client, a logger and optionally your memcached client.
 
 ```ruby
-	dal_instance = DAL::CountryDal.new(mysql, memcache, logger)
+dal_instance = DAL::CountryDal.new(mysql, memcache, logger)
 ```
 
 If you would like to use MySQL query caching, or disable memcache functionality, pass nil as the memcache parameter.
@@ -98,7 +99,7 @@ If you would like to use MySQL query caching, or disable memcache functionality,
 To use CrudService::Service, instantiate the class with the following parameters:
 
 ```ruby
-	service = CrudService::Service.new(dal_instance, log)
+service = CrudService::Service.new(dal_instance, log)
 ```
 
 The dal_instance should be an instance of CrudService::Dal
@@ -110,20 +111,20 @@ a setting key symbol for the DAL instance, the resource name, and the primary ke
 sets up GET, POST, PUT and DELETE routes at the resource specified.
 
 ```ruby
-	class GeoApi < Sinatra::Base
+class GeoApi < Sinatra::Base
 
-	    before do
-	      content_type 'application/json; charset=utf-8'
+    before do
+      content_type 'application/json; charset=utf-8'
 
-	      response.headers['Access-Control-Allow-Origin'] = '*'
-	      response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
-	    end
+      response.headers['Access-Control-Allow-Origin'] = '*'
+      response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    end
 
-	    CrudService::Api.crud_api(self, :dal_instance, 'countries', 'code_alpha_2')
+    CrudService::Api.crud_api(self, :dal_instance, 'countries', 'code_alpha_2')
 
-	end
+end
 
-	GeoApi.set :dal_instance, dal_instance
+GeoApi.set :dal_instance, dal_instance
 ```
 
 The routes are set up as follows (from the above example):
