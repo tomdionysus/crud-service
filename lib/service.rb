@@ -1,7 +1,5 @@
 module CrudService
-
-  # This class provides a generic service instance for the provided DAL and logger.
-  class GenericService
+  class Service
     attr_accessor :dal, :log
 
     # Instantiate a service with the specified DAL and logger.

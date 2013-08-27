@@ -1,5 +1,5 @@
 module Helpers
-  def get_mysql_mock 
+  def mysql_mock
     mysql = double("Mysql2")
     mysql.stub(:escape) do |s|
       Mysql2::Client.escape(s)
@@ -8,12 +8,10 @@ module Helpers
   end
 
   # Mock a Mysql Result object that returns each_hash
-  def get_mysql_result_mock(data)
-    
+  def mysql_result_mock(data)
     result = double(result)
-
     mock = result.stub(:each)
-    
+
     data.each do |hash|
       mock = mock.and_yield(hash)
     end
@@ -29,8 +27,4 @@ module Helpers
     @mock_memcache.stub(:set).and_return(nil)
     @mock_memcache.stub(:incr).and_return(nil)
   end
-end
-
-RSpec.configure do |c|
-  c.include Helpers
 end

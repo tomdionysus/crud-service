@@ -1,12 +1,12 @@
-require "crud-service"
+require "helper"
 
-describe CrudService::GenericDal do
+describe CrudService::Dal do
   before(:each) do
-    @mock_mysql = get_mysql_mock
+    @mock_mysql = mysql_mock
     @mock_memcache = double('Memcache')
     @mock_log = double('Log')
 
-    @generic_dal = CrudService::GenericDal.new(@mock_mysql, @mock_memcache, @mock_log)
+    @generic_dal = CrudService::Dal.new(@mock_mysql, @mock_memcache, @mock_log)
     @generic_dal.table_name = "testtable"
   end
 
@@ -23,7 +23,7 @@ describe CrudService::GenericDal do
 
       testdata = [ { "field_one" => "one" } ]
 
-      mock_result = get_mysql_result_mock(testdata)
+      mock_result = mysql_result_mock(testdata)
 
       query = 'test invalid query'
       query_hash = "geoservice-"+Digest::MD5.hexdigest(query+":testtable-1")
@@ -37,9 +37,7 @@ describe CrudService::GenericDal do
     end
 
     it 'should not attempt to query the database on a cache hit' do
-      
       testdata = [ { "field_one" => "one" } ]
-
       query = 'test invalid query'
       query_hash = "geoservice-"+Digest::MD5.hexdigest(query+":testtable-1")
 
@@ -52,13 +50,11 @@ describe CrudService::GenericDal do
     end
 
     it 'should handle zero record return' do
-      mock_result = get_mysql_result_mock([])
       memcache_null(@mock_memcache)
 
       query = 'test invalid query'
-      query_hash = "geoservice-"+Digest::MD5.hexdigest(query)
 
-      @mock_mysql.should_receive(:query).with(query).and_return(get_mysql_result_mock([]))
+      @mock_mysql.should_receive(:query).with(query).and_return(mysql_result_mock([]))
 
       @generic_dal.cached_query(query,[]).should eq([])
     end
@@ -66,7 +62,7 @@ describe CrudService::GenericDal do
     it 'should write a new table version to cache when not found' do
       testdata = [ { "field_one" => "one" } ]
 
-      mock_result = get_mysql_result_mock(testdata)
+      mock_result = mysql_result_mock(testdata)
 
       query = 'test invalid query'
       query_hash = "geoservice-"+Digest::MD5.hexdigest(query+":testtable-1")
@@ -84,7 +80,7 @@ describe CrudService::GenericDal do
     it 'should miss the cache when a table version has changed' do
       testdata = [ { "field_one" => "one" } ]
 
-      mock_result = get_mysql_result_mock(testdata)
+      mock_result = mysql_result_mock(testdata)
 
       query = 'test invalid query'
       query_hash = "geoservice-"+Digest::MD5.hexdigest(query+":testtable-1")
@@ -458,7 +454,7 @@ describe CrudService::GenericDal do
 
       @generic_dal.table_name = 'test_table'
 
-      @mock_result = get_mysql_result_mock([
+      @mock_result = mysql_result_mock([
         { "field_one" => "one" },
         { "field_one" => "two" } 
       ])
@@ -814,7 +810,7 @@ describe CrudService::GenericDal do
       @generic_dal.table_name = 'pktesttable'
       @generic_dal.primary_key = 'id'
 
-      @mock_result = get_mysql_result_mock([ { "c" => 1 } ])
+      @mock_result = mysql_result_mock([ { "c" => 1 } ])
     end
 
     it 'should call cached_query with correct sql with a numeric primary key' do
@@ -830,7 +826,7 @@ describe CrudService::GenericDal do
     end
 
     it 'should return true when count is not 0' do
-      @mock_result = get_mysql_result_mock([ { "c" => 1 } ])
+      @mock_result = mysql_result_mock([ { "c" => 1 } ])
 
       @mock_mysql.should_receive(:query).with("SELECT COUNT(*) AS `c` FROM `pktesttable` WHERE (`id` = 'test')").and_return(@mock_result)
 
@@ -838,7 +834,7 @@ describe CrudService::GenericDal do
     end
 
     it 'should return false when count is 0' do
-      @mock_result = get_mysql_result_mock([ { "c" => 0 } ])
+      @mock_result = mysql_result_mock([ { "c" => 0 } ])
 
       @mock_mysql.should_receive(:query).with("SELECT COUNT(*) AS `c` FROM `pktesttable` WHERE (`id` = 'test')").and_return(@mock_result)
 
