@@ -21,21 +21,6 @@ You should have:
 
 ## Classes
 
-### Logger
-
-`CrudService::Logger` provides instances of a generic logger with the following methods:
-
-* `debug(message)`
-* `info(message)`
-* `error(message)`
-* `warn(message)`
-
-You can provide instances of this class - or any class that supports these methods - to `Dal` and `Service`.
-
-```ruby
-logger = CrudService::GenericLog.new
-```
-
 ### Dal
 
 `Dal` instances provide a DAL layer for a specific MySQL table, including optional write through Memcached caching using key expiry.
@@ -89,6 +74,8 @@ end
 Then, instantiate the class passing your MySQL client, a logger and optionally your memcached client.
 
 ```ruby
+logger = Logger.new(STDOUT)
+
 dal_instance = DAL::CountryDal.new(mysql, memcache, logger)
 ```
 
