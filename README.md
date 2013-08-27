@@ -1,6 +1,8 @@
 crud-service
 ============
 
+[![Build Status](https://travis-ci.org/tomcully/crud-service.png?branch=master)](https://travis-ci.org/tomcully/crud-service)
+
 ## Introduction
 
 crud-service provides classes to implement a basic JSON CRUD service using Sinatra, MySQL and memcached.
