@@ -7,7 +7,7 @@ module CrudService
   # Your should extend this class to provide configuration for your dal, please see 
   # the README file at http://github.com/tomcully/crud-service
 	class Dal
-    attr_accessor :mysql, :memcache, :log, :table_name, :fields, :relations, :primary_key, :auto_primary_key
+    attr_accessor :mysql, :memcache, :log, :table_name, :fields, :relations, :primary_key, :auto_primary_key, :cache_prefix
 
     # Create an instance.
     def initialize(mysql, memcache = nil, log) 
@@ -29,7 +29,7 @@ module CrudService
         table_versions = ""
 
         tables.each do |table|
-          tbversion = @memcache.get(table+"-version")
+          tbversion = @memcache.get("#{@cache_prefix}-"+table+"-version")
           if tbversion.nil?
             expire_table_cache([table]) 
             tbversion = 1
@@ -38,7 +38,7 @@ module CrudService
         end
 
         # Get the Query Hash
-        querymd5 = "geoservice-"+Digest::MD5.hexdigest(query+":"+table_versions)
+        querymd5 = "#{@cache_prefix}-"+Digest::MD5.hexdigest(query+":"+table_versions)
 
         # Read Cache and return if hit
         results = @memcache.get querymd5
@@ -363,7 +363,7 @@ module CrudService
       return if @memcache.nil?
 
       table_names.each do |table_name|
-        key = table_name+"-version"
+        key = "#{@cache_prefix}-"+table_name+"-version"
         version = @memcache.get(key)
         if version.nil?
           @memcache.set(key,1,nil,{:raw=>true}) 

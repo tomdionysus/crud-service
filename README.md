@@ -68,6 +68,7 @@ class CountryDal < CrudService::Dal
       }
       @primary_key = 'code_alpha_2'
       @auto_primary_key = false
+      @cache_prefix = "geo-countries"
     end
 end
 ```

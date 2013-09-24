@@ -8,6 +8,7 @@ describe CrudService::Dal do
 
     @generic_dal = CrudService::Dal.new(@mock_mysql, @mock_memcache, @mock_log)
     @generic_dal.table_name = "testtable"
+    @generic_dal.cache_prefix = "prefix"
   end
 
   describe '#initialize' do 
@@ -26,9 +27,9 @@ describe CrudService::Dal do
       mock_result = mysql_result_mock(testdata)
 
       query = 'test invalid query'
-      query_hash = "geoservice-"+Digest::MD5.hexdigest(query+":testtable-1")
+      query_hash = "prefix-"+Digest::MD5.hexdigest(query+":testtable-1")
 
-      @mock_memcache.should_receive(:get).ordered.with("testtable-version").and_return(1)
+      @mock_memcache.should_receive(:get).ordered.with("prefix-testtable-version").and_return(1)
       @mock_memcache.should_receive(:get).ordered.with(query_hash).and_return(nil)
       @mock_mysql.should_receive(:query).with(query).and_return(mock_result)
       @mock_memcache.should_receive(:set).ordered.with(query_hash, testdata)
@@ -39,9 +40,9 @@ describe CrudService::Dal do
     it 'should not attempt to query the database on a cache hit' do
       testdata = [ { "field_one" => "one" } ]
       query = 'test invalid query'
-      query_hash = "geoservice-"+Digest::MD5.hexdigest(query+":testtable-1")
+      query_hash = "prefix-"+Digest::MD5.hexdigest(query+":testtable-1")
 
-      @mock_memcache.should_receive(:get).ordered.with("testtable-version").and_return(1)
+      @mock_memcache.should_receive(:get).ordered.with("prefix-testtable-version").and_return(1)
       @mock_memcache.should_receive(:get).ordered.with(query_hash).and_return(testdata)
       @mock_mysql.should_not_receive(:query)
       @mock_memcache.should_not_receive(:set).ordered
@@ -65,11 +66,11 @@ describe CrudService::Dal do
       mock_result = mysql_result_mock(testdata)
 
       query = 'test invalid query'
-      query_hash = "geoservice-"+Digest::MD5.hexdigest(query+":testtable-1")
+      query_hash = "prefix-"+Digest::MD5.hexdigest(query+":testtable-1")
 
-      @mock_memcache.should_receive(:get).ordered.with("testtable-version").and_return(nil)
-      @mock_memcache.should_receive(:get).ordered.with("testtable-version").and_return(nil)
-      @mock_memcache.should_receive(:set).ordered.with("testtable-version",1,nil,{:raw=>true})
+      @mock_memcache.should_receive(:get).ordered.with("prefix-testtable-version").and_return(nil)
+      @mock_memcache.should_receive(:get).ordered.with("prefix-testtable-version").and_return(nil)
+      @mock_memcache.should_receive(:set).ordered.with("prefix-testtable-version",1,nil,{:raw=>true})
       @mock_memcache.should_receive(:get).ordered.with(query_hash).and_return(nil)
       @mock_mysql.should_receive(:query).ordered.with(query).and_return(mock_result)
       @mock_memcache.should_receive(:set).ordered.with(query_hash, testdata)
@@ -83,18 +84,18 @@ describe CrudService::Dal do
       mock_result = mysql_result_mock(testdata)
 
       query = 'test invalid query'
-      query_hash = "geoservice-"+Digest::MD5.hexdigest(query+":testtable-1")
+      query_hash = "prefix-"+Digest::MD5.hexdigest(query+":testtable-1")
 
-      @mock_memcache.should_receive(:get).ordered.with("testtable-version").and_return(1)
+      @mock_memcache.should_receive(:get).ordered.with("prefix-testtable-version").and_return(1)
       @mock_memcache.should_receive(:get).ordered.with(query_hash).and_return(nil)
       @mock_mysql.should_receive(:query).with(query).and_return(mock_result)
       @mock_memcache.should_receive(:set).ordered.with(query_hash, testdata)
 
       @generic_dal.cached_query(query,[]).should eq testdata
 
-      query_hash = "geoservice-"+Digest::MD5.hexdigest(query+":testtable-2")
+      query_hash = "prefix-"+Digest::MD5.hexdigest(query+":testtable-2")
 
-      @mock_memcache.should_receive(:get).ordered.with("testtable-version").and_return(2)
+      @mock_memcache.should_receive(:get).ordered.with("prefix-testtable-version").and_return(2)
       @mock_memcache.should_receive(:get).ordered.with(query_hash).and_return(nil)
       @mock_mysql.should_receive(:query).with(query).and_return(mock_result)
       @mock_memcache.should_receive(:set).ordered.with(query_hash, testdata)
@@ -785,26 +786,26 @@ describe CrudService::Dal do
   describe '#expire_table_cache' do
     it 'should set a table version when it doesnt exist' do
 
-      @mock_memcache.should_receive(:get).ordered.with("testtable-version").and_return(nil)
-      @mock_memcache.should_receive(:set).ordered.with("testtable-version",1,nil,{:raw=>true}).and_return(nil)
+      @mock_memcache.should_receive(:get).ordered.with("prefix-testtable-version").and_return(nil)
+      @mock_memcache.should_receive(:set).ordered.with("prefix-testtable-version",1,nil,{:raw=>true}).and_return(nil)
 
       @generic_dal.expire_table_cache(['testtable'])
     end
 
     it 'should increment a table version when it exists' do
 
-      @mock_memcache.should_receive(:get).ordered.with("testtable-version").and_return(1)
-      @mock_memcache.should_receive(:incr).ordered.with("testtable-version",1,nil).and_return(nil)
+      @mock_memcache.should_receive(:get).ordered.with("prefix-testtable-version").and_return(1)
+      @mock_memcache.should_receive(:incr).ordered.with("prefix-testtable-version",1,nil).and_return(nil)
 
       @generic_dal.expire_table_cache(['testtable'])
     end
 
     it 'should expire multiple tables' do
 
-      @mock_memcache.should_receive(:get).ordered.with("testtable-version").and_return(1)
-      @mock_memcache.should_receive(:incr).ordered.with("testtable-version",1,nil).and_return(nil)
-      @mock_memcache.should_receive(:get).ordered.with("tabletwo-version").and_return(1)
-      @mock_memcache.should_receive(:incr).ordered.with("tabletwo-version",1,nil).and_return(nil)
+      @mock_memcache.should_receive(:get).ordered.with("prefix-testtable-version").and_return(1)
+      @mock_memcache.should_receive(:incr).ordered.with("prefix-testtable-version",1,nil).and_return(nil)
+      @mock_memcache.should_receive(:get).ordered.with("prefix-tabletwo-version").and_return(1)
+      @mock_memcache.should_receive(:incr).ordered.with("prefix-tabletwo-version",1,nil).and_return(nil)
 
       @generic_dal.expire_table_cache(['testtable','tabletwo'])
     end
@@ -1096,10 +1097,10 @@ describe CrudService::Dal do
       @mock_mysql.should_receive(:query).ordered.with(query)
       @mock_mysql.should_not_receive(:last_id)
 
-      @mock_memcache.should_receive(:get).ordered.with('test_table-version').and_return(1)
-      @mock_memcache.should_receive(:incr).ordered.with('test_table-version',1,nil)
+      @mock_memcache.should_receive(:get).ordered.with('prefix-test_table-version').and_return(1)
+      @mock_memcache.should_receive(:incr).ordered.with('prefix-test_table-version',1,nil)
       
-      @mock_memcache.should_receive(:get).ordered.with('test_table-version').and_return(1)
+      @mock_memcache.should_receive(:get).ordered.with('prefix-test_table-version').and_return(1)
       @mock_memcache.should_receive(:get).ordered.and_return([{ "field_one" => "one","id"=>1 }])
             
       @generic_dal.insert(testdata)
@@ -1119,10 +1120,10 @@ describe CrudService::Dal do
       @mock_mysql.should_receive(:query).ordered.with(query)
       @mock_mysql.should_receive(:last_id)
 
-      @mock_memcache.should_receive(:get).ordered.with('test_table-version').and_return(1)
-      @mock_memcache.should_receive(:incr).ordered.with('test_table-version',1,nil)
+      @mock_memcache.should_receive(:get).ordered.with('prefix-test_table-version').and_return(1)
+      @mock_memcache.should_receive(:incr).ordered.with('prefix-test_table-version',1,nil)
       
-      @mock_memcache.should_receive(:get).ordered.with('test_table-version').and_return(1)
+      @mock_memcache.should_receive(:get).ordered.with('prefix-test_table-version').and_return(1)
       @mock_memcache.should_receive(:get).ordered.and_return([{ "field_one" => "one","id"=>1 }])
       @mock_memcache.should_not_receive(:last_id)
 
@@ -1144,10 +1145,10 @@ describe CrudService::Dal do
 
       @mock_mysql.should_receive(:query).ordered.with(query)
       
-      @mock_memcache.should_receive(:get).ordered.with('test_table-version').and_return(1)
-      @mock_memcache.should_receive(:incr).ordered.with('test_table-version',1,nil)
+      @mock_memcache.should_receive(:get).ordered.with('prefix-test_table-version').and_return(1)
+      @mock_memcache.should_receive(:incr).ordered.with('prefix-test_table-version',1,nil)
       
-      @mock_memcache.should_receive(:get).ordered.with('test_table-version').and_return(1)
+      @mock_memcache.should_receive(:get).ordered.with('prefix-test_table-version').and_return(1)
       @mock_memcache.should_receive(:get).ordered.and_return([{ "field_one" => "two","id"=>2}])
       
       @generic_dal.update_by_primary_key(2, testdata)
@@ -1163,8 +1164,8 @@ describe CrudService::Dal do
       query = "DELETE FROM `test_table` WHERE (`code` = 'three')"
 
       @mock_mysql.should_receive(:query).ordered.with(query)
-      @mock_memcache.should_receive(:get).ordered.with('test_table-version').and_return(1)
-      @mock_memcache.should_receive(:incr).ordered.with('test_table-version',1,nil)
+      @mock_memcache.should_receive(:get).ordered.with('prefix-test_table-version').and_return(1)
+      @mock_memcache.should_receive(:incr).ordered.with('prefix-test_table-version',1,nil)
       
       @generic_dal.delete_by_primary_key('three')
     end

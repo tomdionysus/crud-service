@@ -39,7 +39,7 @@ module CrudService
             return 400 unless service.valid_insert?(data)
 
             # Already Exists?
-            return 409 if service.exists_by_primary_key?(data['code'])
+            return 409 if service.exists_by_primary_key?(data[primary_key_name])
 
             # Do Insert
             record = service.insert(data)
@@ -57,7 +57,7 @@ module CrudService
             service = settings.send(service_name)
 
             # Must Exist
-            return 404 unless service.exists_by_primary_key?(params[:code])
+            return 404 unless service.exists_by_primary_key?(params[primary_key_name.to_sym])
 
             # Get The Data
             begin
@@ -70,7 +70,7 @@ module CrudService
             return 400 unless service.valid_update?(data)
 
             # Do Update
-            record = service.update_by_primary_key(params[:code],data)
+            record = service.update_by_primary_key(params[primary_key_name.to_sym],data)
 
             # Other Error
             return 500 if record.nil?
@@ -85,10 +85,10 @@ module CrudService
             service = settings.send(service_name)
 
             # Must Exist
-            return 404 unless service.exists_by_primary_key?(params[:code])
+            return 404 unless service.exists_by_primary_key?(params[primary_key_name.to_sym])
 
             # Do Delete
-            return 400 unless service.delete_by_primary_key(params[:code])
+            return 400 unless service.delete_by_primary_key(params[primary_key_name.to_sym])
 
             204
           end
