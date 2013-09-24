@@ -7,7 +7,7 @@ module CrudService
   # Your should extend this class to provide configuration for your dal, please see 
   # the README file at http://github.com/tomcully/crud-service
 	class Dal
-    attr_accessor :mysql, :memcache, :log, :table_name, :fields, :relations, :primary_key
+    attr_accessor :mysql, :memcache, :log, :table_name, :fields, :relations, :primary_key, :auto_primary_key
 
     # Create an instance.
     def initialize(mysql, memcache = nil, log) 
@@ -187,6 +187,11 @@ module CrudService
     def escape_str_field(str)
       str = str.to_s.sub(/\`/,'')
       @mysql.escape(str)
+    end
+
+    # Get the last insert id
+    def get_last_id
+      return @mysql.last_id
     end
 
     # Get one record via a query
@@ -427,7 +432,11 @@ module CrudService
 
       expire_table_cache(get_all_related_tables)
 
-      get_one({@primary_key => data[@primary_key]})
+      if @auto_primary_key
+        get_one({@primary_key => get_last_id})
+      else
+        get_one({@primary_key => data[@primary_key]})
+      end
     end
 
     # Update a record by its primary key from data

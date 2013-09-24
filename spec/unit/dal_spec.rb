@@ -443,6 +443,13 @@ describe CrudService::Dal do
     end
   end
 
+  describe '#get_last_id' do
+    it 'should call mysql last_id' do
+       @mock_mysql.should_receive(:last_id)
+       @generic_dal.get_last_id
+    end
+  end
+
   describe '#get_one' do
     before(:each) do
       memcache_null(@mock_memcache)
@@ -1082,10 +1089,12 @@ describe CrudService::Dal do
       @generic_dal.fields = {
         "field_one" => { :type => :integer }
       }
+      @generic_dal.auto_primary_key = false
 
       query = "INSERT INTO `test_table` (`field_one`) VALUES ('one')"
 
       @mock_mysql.should_receive(:query).ordered.with(query)
+      @mock_mysql.should_not_receive(:last_id)
 
       @mock_memcache.should_receive(:get).ordered.with('test_table-version').and_return(1)
       @mock_memcache.should_receive(:incr).ordered.with('test_table-version',1,nil)
@@ -1093,6 +1102,30 @@ describe CrudService::Dal do
       @mock_memcache.should_receive(:get).ordered.with('test_table-version').and_return(1)
       @mock_memcache.should_receive(:get).ordered.and_return([{ "field_one" => "one","id"=>1 }])
             
+      @generic_dal.insert(testdata)
+    end
+
+    it 'should call last_id when auto_primary_key is true' do
+      testdata = { "field_one" => "one" }
+
+      @generic_dal.table_name = "test_table"
+      @generic_dal.fields = {
+        "field_one" => { :type => :integer }
+      }
+      @generic_dal.auto_primary_key = true
+
+      query = "INSERT INTO `test_table` (`field_one`) VALUES ('one')"
+
+      @mock_mysql.should_receive(:query).ordered.with(query)
+      @mock_mysql.should_receive(:last_id)
+
+      @mock_memcache.should_receive(:get).ordered.with('test_table-version').and_return(1)
+      @mock_memcache.should_receive(:incr).ordered.with('test_table-version',1,nil)
+      
+      @mock_memcache.should_receive(:get).ordered.with('test_table-version').and_return(1)
+      @mock_memcache.should_receive(:get).ordered.and_return([{ "field_one" => "one","id"=>1 }])
+      @mock_memcache.should_not_receive(:last_id)
+
       @generic_dal.insert(testdata)
     end
   end
