@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name        = 'crud-service'
-  s.version     = '0.0.8'
-  s.date        = '2013-08-26'
+  s.version     = '0.0.9'
+  s.date        = '2013-09-24'
   s.summary     = "A Sinatra/MySQL/Memcache CRUD Service Library"
   s.description = "A basic library for automatic CRUD services using only Sinatra, MySQL and Memcache"
   s.authors     = ["Tom Cully", "Sasha Gerrand"]
