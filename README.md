@@ -1,11 +1,14 @@
-crud-service
-============
+# crud-service
 
-[![Build Status](https://travis-ci.org/tomdionysus/crud-service.png?branch=master)](https://travis-ci.org/tomdionysus/crud-service) [![Gem Version](https://badge.fury.io/rb/crud-service.png)](http://rubygems.org/gems/crud-service)
+[![Build Status](https://travis-ci.org/tomdionysus/crud-service.svg?branch=master)](https://travis-ci.org/tomdionysus/crud-service)
+[![Coverage Status](https://coveralls.io/repos/tomdionysus/crud-service/badge.svg?branch=master&service=github)](https://coveralls.io/github/tomdionysus/crud-service?branch=master)
+[![Gem Version](https://badge.fury.io/rb/crud-service.svg)](http://rubygems.org/gems/crud-service)
+[![Dependency Status](https://gemnasium.com/tomdionysus/crud-service.svg)](https://gemnasium.com/tomdionysus/crud-service)
+[![Gem Downloads](http://ruby-gem-downloads-badge.herokuapp.com/crud-service?color=brightgreen)](http://ruby-gem-downloads-badge.herokuapp.com/crud-service?color=brightgreen)
 
 ## Introduction
 
-crud-service provides classes to implement a basic JSON CRUD service using Sinatra, MySQL and memcached.
+`crud-service` provides classes to implement a basic JSON CRUD service using Sinatra, MySQL and memcached.
 
 ## Usage
 
