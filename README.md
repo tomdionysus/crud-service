@@ -187,6 +187,10 @@ These query parameters can be combined:
 * Please note `crud-service` performs no kind of authentication. You should implement authentication for reads and writes either in your Sinatra class, or by extending `CrudService::Api`.
 * Cache expiry after a write is based on table versions, stored in memcache. It is important that all running instances of your service use the same memcache cluster, or instances using a different cache cluster may return stale data after a write a service not using that cluster. Workaround: Disable memcache as detailed above and use MySQL query caching at the DB server level.
 
+## Code of Conduct
+
+The crud-service project is committed to the [Contributor Covenant](http://contributor-covenant.org). Please read [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) before making any contributions or comments.
+
 ## Contributing
 
 1. Fork it
