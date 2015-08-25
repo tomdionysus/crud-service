@@ -5,7 +5,7 @@ module CrudService
     def crud_api(resource_name, service_name, primary_key_name, api_options = {})
       api_options = get_defaults(api_options)
 
-      crud_options(resource_name, service_name, primary_key_name, api_options) if api_options[:enable_options]
+      crud_options(resource_name, api_options) if api_options[:enable_options]
 
       if api_options[:enable_write]
         crud_post(resource_name, service_name, primary_key_name, api_options) if api_options[:enable_post]
@@ -19,7 +19,7 @@ module CrudService
       end
     end
 
-    def crud_options(resource_name, service_name, primary_key_name, api_options = {})
+    def crud_options(resource_name, api_options = {})
       api_options = get_defaults(api_options)
       options '/'+resource_name do
         204

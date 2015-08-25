@@ -58,7 +58,7 @@ describe CrudService::Api do
 
       inst = TestAPI.new
 
-      expect(inst).to receive(:crud_options).with(1,2,3,mock_opts)
+      expect(inst).to receive(:crud_options).with(1,mock_opts)
       expect(inst).to receive(:crud_post).with(1,2,3,mock_opts)
       expect(inst).to receive(:crud_put).with(1,2,3,mock_opts)
       expect(inst).to receive(:crud_delete).with(1,2,3,mock_opts)
@@ -73,7 +73,7 @@ describe CrudService::Api do
 
       inst = TestAPI.new
 
-      expect(inst).to receive(:crud_options).with(1,2,3,mock_opts)
+      expect(inst).to receive(:crud_options).with(1,mock_opts)
       expect(inst).not_to receive(:crud_post).with(1,2,3,mock_opts)
       expect(inst).not_to receive(:crud_put).with(1,2,3,mock_opts)
       expect(inst).not_to receive(:crud_delete).with(1,2,3,mock_opts)
@@ -88,7 +88,7 @@ describe CrudService::Api do
 
       inst = TestAPI.new
 
-      expect(inst).to receive(:crud_options).with(1,2,3,mock_opts)
+      expect(inst).to receive(:crud_options).with(1,mock_opts)
       expect(inst).to receive(:crud_post).with(1,2,3,mock_opts)
       expect(inst).to receive(:crud_put).with(1,2,3,mock_opts)
       expect(inst).to receive(:crud_delete).with(1,2,3,mock_opts)
@@ -103,7 +103,7 @@ describe CrudService::Api do
 
       inst = TestAPI.new
 
-      expect(inst).to receive(:crud_options).with(1,2,3,mock_opts)
+      expect(inst).to receive(:crud_options).with(1,mock_opts)
       expect(inst).not_to receive(:crud_post).with(1,2,3,mock_opts)
       expect(inst).to receive(:crud_put).with(1,2,3,mock_opts)
       expect(inst).to receive(:crud_delete).with(1,2,3,mock_opts)
@@ -118,7 +118,7 @@ describe CrudService::Api do
 
       inst = TestAPI.new
 
-      expect(inst).to receive(:crud_options).with(1,2,3,mock_opts)
+      expect(inst).to receive(:crud_options).with(1,mock_opts)
       expect(inst).to receive(:crud_post).with(1,2,3,mock_opts)
       expect(inst).not_to receive(:crud_put).with(1,2,3,mock_opts)
       expect(inst).to receive(:crud_delete).with(1,2,3,mock_opts)
@@ -133,7 +133,7 @@ describe CrudService::Api do
 
       inst = TestAPI.new
 
-      expect(inst).to receive(:crud_options).with(1,2,3,mock_opts)
+      expect(inst).to receive(:crud_options).with(1,mock_opts)
       expect(inst).to receive(:crud_post).with(1,2,3,mock_opts)
       expect(inst).to receive(:crud_put).with(1,2,3,mock_opts)
       expect(inst).not_to receive(:crud_delete).with(1,2,3,mock_opts)
@@ -148,7 +148,7 @@ describe CrudService::Api do
 
       inst = TestAPI.new
 
-      expect(inst).to receive(:crud_options).with(1,2,3,mock_opts)
+      expect(inst).to receive(:crud_options).with(1,mock_opts)
       expect(inst).to receive(:crud_post).with(1,2,3,mock_opts)
       expect(inst).to receive(:crud_put).with(1,2,3,mock_opts)
       expect(inst).to receive(:crud_delete).with(1,2,3,mock_opts)
@@ -163,7 +163,7 @@ describe CrudService::Api do
 
       inst = TestAPI.new
 
-      expect(inst).to receive(:crud_options).with(1,2,3,mock_opts)
+      expect(inst).to receive(:crud_options).with(1,mock_opts)
       expect(inst).to receive(:crud_post).with(1,2,3,mock_opts)
       expect(inst).to receive(:crud_put).with(1,2,3,mock_opts)
       expect(inst).to receive(:crud_delete).with(1,2,3,mock_opts)
