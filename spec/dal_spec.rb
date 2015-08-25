@@ -1,4 +1,4 @@
-require "helper"
+require "spec_helper"
 
 describe CrudService::Dal do
   before(:each) do

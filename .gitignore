@@ -1,9 +1,3 @@
-# Test related output
-/spec/coverage
-/spec/reports
-
-# Gems don't need Gemfile.lock
 Gemfile.lock
-
-# Environment variables
-/.env
+doc/
+*.gem

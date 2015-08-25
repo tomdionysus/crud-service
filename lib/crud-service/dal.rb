@@ -1,4 +1,3 @@
-require 'json'
 require 'mysql2'
 
 module CrudService
