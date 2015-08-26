@@ -1,6 +1,12 @@
 module CrudService
+  # Service provides a generic mapping layer between the API and the DAL.
+  # You should extend this class, or provide a class with the same interface,
+  # to implement service level functionality, or support REST-like RPC.
   class Service
-    attr_accessor :dal, :log
+    # The DAL layer to use, e.g. an instance of CrudService::DAL
+    attr_accessor :dal
+    # The logger to use, e.g. an instance of Console::Logger
+    attr_accessor :log
 
     # Instantiate a service with the specified DAL and logger.
     def initialize(dal, log)

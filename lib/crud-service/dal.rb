@@ -6,7 +6,24 @@ module CrudService
   # Your should extend this class to provide configuration for your dal, please see 
   # the README file at http://github.com/tomcully/crud-service
 	class Dal
-    attr_accessor :mysql, :memcache, :log, :table_name, :fields, :relations, :primary_key, :auto_primary_key, :cache_prefix
+    # The DB layer to use, e.g. an instance of Mysql2::Client
+    attr_accessor :mysql
+    # The Memcache layer to use, e.g. an instance of Dalli::Client
+    attr_accessor :memcache
+    # The logger to use, e.g. an instance of Console::Logger
+    attr_accessor :log
+    # The DB table name
+    attr_accessor :table_name
+    # A Hash of table fields (See README)
+    attr_accessor :fields
+    # A Hash of table relations (See README)
+    attr_accessor :relations
+    # The primary key name
+    attr_accessor :primary_key
+    # If true, the primary key values are assigned by the DB layer
+    attr_accessor :auto_primary_key
+    # The memcache key prefix for this DAL
+    attr_accessor :cache_prefix
 
     # Create an instance.
     def initialize(mysql, memcache = nil, log) 
@@ -104,6 +121,7 @@ module CrudService
       where.chomp(' AND ')
     end
 
+    # Build a simple where clause from the given query with the given table/db namespace
     def build_where_ns(query,ns)
       where = ""
       query.each_pair do |k, v| 
@@ -213,6 +231,7 @@ module CrudService
       map_to_hash_by_primary_key(get_all_by_query(query))
     end
 
+    # Map in the included relations to each of the supplied result rows
     def map_in_included_relations!(result, query)
       dat = get_relation_data_as_hash(query)
       result.each do |res|
@@ -247,6 +266,7 @@ module CrudService
       reldata
     end
 
+    # Remove the given key from each record in the supplied hash
     def remove_key_from_hash_of_arrays!(hash,key)
       hash.each do |name,arr|
         arr.each do |record|
