@@ -16,14 +16,14 @@ Gem::Specification.new do |s|
   s.license     = 'Apache2'
   s.required_ruby_version = '>= 2.1.0'
 
-  s.add_runtime_dependency 'dalli', '~> 2.7.4'
-  s.add_runtime_dependency 'mysql2', '~> 0.3.19'
-  s.add_runtime_dependency 'sinatra', '~> 1.4.6'
+  s.add_runtime_dependency 'dalli', '~> 2.7'
+  s.add_runtime_dependency 'mysql2', '~> 0.3'
+  s.add_runtime_dependency 'sinatra', '~> 1.4'
 
-  s.add_development_dependency "coveralls", '~> 0.8.2'
-  s.add_development_dependency "dotenv", '~> 2.0.2'
+  s.add_development_dependency "coveralls", '~> 0.8'
+  s.add_development_dependency "dotenv", '~> 2.0'
   s.add_development_dependency "rake", "~> 10.0"
   s.add_development_dependency "rspec", '~> 3.1'
   s.add_development_dependency "rspec-mocks", '~> 3.1'
-  s.add_development_dependency "rack-test", '~> 0.6.3'
+  s.add_development_dependency "rack-test", '~> 0.6'
 end
