@@ -11,7 +11,7 @@ describe CrudService::Dal do
     @generic_dal.cache_prefix = "prefix"
   end
 
-  describe '#initialize' do 
+  describe '#initialize' do
     it 'should inject dependencies correctly' do
       expect(@generic_dal.mysql).to eq(@mock_mysql)
       expect(@generic_dal.memcache).to eq(@mock_memcache)
@@ -101,6 +101,31 @@ describe CrudService::Dal do
       expect(@mock_memcache).to receive(:set).ordered.with(query_hash, testdata)
 
       expect(@generic_dal.cached_query(query,[])).to eq(testdata)
+    end
+
+    it 'should lok error and return [] if the database query fails' do
+      testdata = [ { "field_one" => "one" } ]
+
+      mock_result = mysql_result_mock(testdata)
+
+      query = 'test invalid query'
+      query_hash = "prefix-"+Digest::MD5.hexdigest(query+":testtable-1")
+
+      expect(@mock_memcache).to receive(:get).ordered.with("prefix-testtable-version").and_return(1)
+      expect(@mock_memcache).to receive(:get).ordered.with(query_hash).and_return(nil)
+      expect(@mock_mysql).to receive(:query).with(query).and_return(mock_result)
+      expect(@mock_memcache).to receive(:set).ordered.with(query_hash, testdata)
+
+      expect(@generic_dal.cached_query(query,[])).to eq(testdata)
+
+      query_hash = "prefix-"+Digest::MD5.hexdigest(query+":testtable-2")
+
+      expect(@mock_memcache).to receive(:get).ordered.with("prefix-testtable-version").and_return(2)
+      expect(@mock_memcache).to receive(:get).ordered.with(query_hash).and_return(nil)
+      expect(@mock_mysql).to receive(:query) { raise "TestException"}
+      expect(@mock_log).to receive(:error).with("TestException")
+
+      expect(@generic_dal.cached_query(query,[])).to eq([])
     end
 
   end
@@ -221,7 +246,7 @@ describe CrudService::Dal do
         "testX" => { :type=>:string },
       }
     end
-    
+
     it 'should return all fields with nil excludes' do
       expect(@generic_dal.build_fields({})).to eq "`test1`,`test2`,`testX`"
     end
@@ -247,7 +272,7 @@ describe CrudService::Dal do
         "testX" => { :type=>:string },
       }
     end
-    
+
     it 'should return all fields with nil excludes' do
       expect(@generic_dal.build_fields_with_ns({},'a')).to eq "`a`.`test1`,`a`.`test2`,`a`.`testX`"
     end
@@ -364,7 +389,7 @@ describe CrudService::Dal do
         "six" => { :type=>:string },
       }
     end
-    
+
     it 'should return true with valid fields' do
       expect(@generic_dal.valid_query?({"one"=>1})).to be true
     end
@@ -446,8 +471,8 @@ describe CrudService::Dal do
 
   describe '#get_last_id' do
     it 'should call mysql last_id' do
-       expect(@mock_mysql).to receive(:last_id)
-       @generic_dal.get_last_id
+      expect(@mock_mysql).to receive(:last_id)
+      @generic_dal.get_last_id
     end
   end
 
@@ -464,22 +489,22 @@ describe CrudService::Dal do
 
       @mock_result = mysql_result_mock([
         { "field_one" => "one" },
-        { "field_one" => "two" } 
+        { "field_one" => "two" }
       ])
     end
 
     it 'should call cached_query with the correct query for one field and return a single object' do
       expect(@mock_mysql).to receive(:query)
-        .with("SELECT `one`,`two` FROM `test_table` WHERE (`field` = 'test2')")
-        .and_return(@mock_result)
+      .with("SELECT `one`,`two` FROM `test_table` WHERE (`field` = 'test2')")
+      .and_return(@mock_result)
 
       expect(@generic_dal.get_one({ :field => 'test2' })).to eq({ "field_one" => "one" })
     end
 
     it 'should call cached_query with the correct query for one field and return a single object' do
       expect(@mock_mysql).to receive(:query)
-        .with("SELECT `one`,`two` FROM `test_table` WHERE (`field` = 'test2') AND (`field_two` = 'test3')")
-        .and_return(@mock_result)
+      .with("SELECT `one`,`two` FROM `test_table` WHERE (`field` = 'test2') AND (`field_two` = 'test3')")
+      .and_return(@mock_result)
 
       expect(@generic_dal.get_one({ :field => 'test2', :field_two => 'test3' })).to eq({ "field_one" => "one" })
     end
@@ -501,20 +526,20 @@ describe CrudService::Dal do
         { "id" => 1, "field_one" => "one" },
         { "id" => 2.5, "field_one" => "two point five" },
         { "id" => "3", "field_one" => "three" },
-        { "id" => nil, "field_one" => "four" } 
+        { "id" => nil, "field_one" => "four" }
       ]
 
       expect(@generic_dal.map_to_hash_by_primary_key(test)).to eq({
         1 => { "id" => 1, "field_one" => "one" },
         2.5 => { "id" => 2.5, "field_one" => "two point five" },
         "3" => { "id" => "3", "field_one" => "three" },
-        nil =>  { "id" => nil, "field_one" => "four" } 
+        nil =>  { "id" => nil, "field_one" => "four" }
       })
     end
   end
 
   describe '#remove_key_from_hash_of_arrays!' do
-  
+
     it 'should remove a key from each hash in each array in each hash value' do
 
       test = {
@@ -546,7 +571,7 @@ describe CrudService::Dal do
         { "id" => 1, "field_one" => 1 },
         { "id" => 2.5, "field_one" => "two point five" },
         { "id" => "3", "field_one" => "three" },
-        { "id" => nil, "field_one" => 4.5 }, 
+        { "id" => nil, "field_one" => 4.5 },
         { "id" => nil, "field_one" => 1 },
         { "id" => 90, "field_one" => "two point five" },
         { "id" => nil, "field_one" => "four" },
@@ -625,114 +650,135 @@ describe CrudService::Dal do
 
       @generic_dal.table_name = "currencies"
 
-      rel = { 
-        :type         => :has_one, 
+      rel = {
+        :type         => :has_one,
         :table        => 'countries',
-        :table_key    => 'default_currency_code', 
+        :table_key    => 'default_currency_code',
         :this_key     => 'code',
         :table_fields => 'code_alpha_2,name',
       }
 
       expect(@generic_dal.get_relation_query_sql(rel,{})).to eq(
-        "SELECT `a`.`code_alpha_2`,`a`.`name`,`b`.`code` AS `_table_key` FROM `countries` AS `a`, `currencies` AS `b` WHERE (`a`.`default_currency_code` = `b`.`code`)"
+      "SELECT `a`.`code_alpha_2`,`a`.`name`,`b`.`code` AS `_table_key` FROM `countries` AS `a`, `currencies` AS `b` WHERE (`a`.`default_currency_code` = `b`.`code`)"
       )
-      
+
     end
 
     it 'should return the correct sql for a has_one relation with a query' do
 
       @generic_dal.table_name = "currencies"
 
-      rel = { 
-        :type         => :has_one, 
+      rel = {
+        :type         => :has_one,
         :table        => 'countries',
-        :table_key    => 'default_currency_code', 
+        :table_key    => 'default_currency_code',
         :this_key     => 'code',
         :table_fields => 'code_alpha_2,name',
       }
 
       expect(@generic_dal.get_relation_query_sql(rel,{'testfield'=>1})).to eq(
-        "SELECT `a`.`code_alpha_2`,`a`.`name`,`b`.`code` AS `_table_key` FROM `countries` AS `a`, `currencies` AS `b` WHERE (`a`.`default_currency_code` = `b`.`code`) AND (`b`.`testfield` = 1)"
+      "SELECT `a`.`code_alpha_2`,`a`.`name`,`b`.`code` AS `_table_key` FROM `countries` AS `a`, `currencies` AS `b` WHERE (`a`.`default_currency_code` = `b`.`code`) AND (`b`.`testfield` = 1)"
       )
-      
+
     end
 
     it 'should return the correct sql for a has_many relation' do
 
       @generic_dal.table_name = "houses"
 
-      rel = { 
+      rel = {
         :type         => :has_many,
         :table        => 'cats',
-        :table_key    => 'house_id', 
+        :table_key    => 'house_id',
         :this_key     => 'id',
         :table_fields => 'cat_id,name',
       }
 
       expect(@generic_dal.get_relation_query_sql(rel,{})).to eq(
-        "SELECT `a`.`cat_id`,`a`.`name`,`b`.`id` AS `_table_key` FROM `cats` AS `a`, `houses` AS `b` WHERE (`a`.`house_id` = `b`.`id`)"
+      "SELECT `a`.`cat_id`,`a`.`name`,`b`.`id` AS `_table_key` FROM `cats` AS `a`, `houses` AS `b` WHERE (`a`.`house_id` = `b`.`id`)"
       )
-      
+
     end
 
     it 'should return the correct sql for a has_many relation with a query' do
 
       @generic_dal.table_name = "houses"
 
-      rel = { 
+      rel = {
         :type         => :has_many,
         :table        => 'cats',
-        :table_key    => 'house_id', 
+        :table_key    => 'house_id',
         :this_key     => 'id',
         :table_fields => 'cat_id,name',
       }
 
       expect(@generic_dal.get_relation_query_sql(rel,{"colour"=>"ginger"})).to eq(
-        "SELECT `a`.`cat_id`,`a`.`name`,`b`.`id` AS `_table_key` FROM `cats` AS `a`, `houses` AS `b` WHERE (`a`.`house_id` = `b`.`id`) AND (`b`.`colour` = 'ginger')"
+      "SELECT `a`.`cat_id`,`a`.`name`,`b`.`id` AS `_table_key` FROM `cats` AS `a`, `houses` AS `b` WHERE (`a`.`house_id` = `b`.`id`) AND (`b`.`colour` = 'ginger')"
       )
-      
+
     end
 
     it 'should return the correct sql for a has_many_through relation' do
 
       @generic_dal.table_name = "countries"
 
-      rel = { 
+      rel = {
         :type         => :has_many_through,
         :table        => 'regions',
         :link_table   => 'region_countries',
         :link_key     => 'country_code_alpha_2',
         :link_field   => 'region_code',
-        :table_key    => 'code', 
+        :table_key    => 'code',
         :this_key     => 'code_alpha_2',
         :table_fields => 'code,name',
       }
 
       expect(@generic_dal.get_relation_query_sql(rel,{})).to eq(
-        "SELECT `a`.`code`,`a`.`name`,`c`.`code_alpha_2` AS `_table_key` FROM `regions` AS `a`, `region_countries` AS `b`, `countries` AS `c` WHERE (`a`.`code` = `b`.`region_code` AND `b`.`country_code_alpha_2` = `c`.`code_alpha_2`)"
+      "SELECT `a`.`code`,`a`.`name`,`c`.`code_alpha_2` AS `_table_key` FROM `regions` AS `a`, `region_countries` AS `b`, `countries` AS `c` WHERE (`a`.`code` = `b`.`region_code` AND `b`.`country_code_alpha_2` = `c`.`code_alpha_2`)"
       )
-      
+
     end
 
     it 'should return the correct sql for a has_many_through relation with a query' do
 
       @generic_dal.table_name = "countries"
 
-      rel = { 
+      rel = {
         :type         => :has_many_through,
         :table        => 'regions',
         :link_table   => 'region_countries',
         :link_key     => 'country_code_alpha_2',
         :link_field   => 'region_code',
-        :table_key    => 'code', 
+        :table_key    => 'code',
         :this_key     => 'code_alpha_2',
         :table_fields => 'code,name',
       }
 
       expect(@generic_dal.get_relation_query_sql(rel,{"default_currency_code"=>"EUR"})).to eq(
-        "SELECT `a`.`code`,`a`.`name`,`c`.`code_alpha_2` AS `_table_key` FROM `regions` AS `a`, `region_countries` AS `b`, `countries` AS `c` WHERE (`a`.`code` = `b`.`region_code` AND `b`.`country_code_alpha_2` = `c`.`code_alpha_2`) AND (`c`.`default_currency_code` = 'EUR')"
+      "SELECT `a`.`code`,`a`.`name`,`c`.`code_alpha_2` AS `_table_key` FROM `regions` AS `a`, `region_countries` AS `b`, `countries` AS `c` WHERE (`a`.`code` = `b`.`region_code` AND `b`.`country_code_alpha_2` = `c`.`code_alpha_2`) AND (`c`.`default_currency_code` = 'EUR')"
       )
-      
+
+    end
+
+    it 'should return the correct sql for a has_many_through relation with a query' do
+
+      @generic_dal.table_name = "countries"
+
+      rel = {
+        :type         => :unknown,
+        :table        => 'regions',
+        :link_table   => 'region_countries',
+        :link_key     => 'country_code_alpha_2',
+        :link_field   => 'region_code',
+        :table_key    => 'code',
+        :this_key     => 'code_alpha_2',
+        :table_fields => 'code,name',
+      }
+
+      expect(@mock_log).to receive(:error).with("Relation type unknown undefined!")
+
+      expect(@generic_dal.get_relation_query_sql(rel,{"default_currency_code"=>"EUR"})).to be_nil()
+
     end
   end
 
@@ -740,10 +786,10 @@ describe CrudService::Dal do
     it 'should return the correct tables for a has_one relation' do
       @generic_dal.table_name = "currencies"
 
-      rel = { 
-        :type         => :has_one, 
+      rel = {
+        :type         => :has_one,
         :table        => 'countries',
-        :table_key    => 'default_currency_code', 
+        :table_key    => 'default_currency_code',
         :this_key     => 'code',
         :table_fields => 'code_alpha_2,name',
       }
@@ -754,10 +800,10 @@ describe CrudService::Dal do
     it 'should return the correct tables for a has_many relation' do
       @generic_dal.table_name = "houses"
 
-      rel = { 
+      rel = {
         :type         => :has_many,
         :table        => 'cats',
-        :table_key    => 'house_id', 
+        :table_key    => 'house_id',
         :this_key     => 'id',
         :table_fields => 'cat_id,name',
       }
@@ -768,18 +814,28 @@ describe CrudService::Dal do
     it 'should return the correct tables for a has_many_through relation' do
       @generic_dal.table_name = "countries"
 
-      rel = { 
+      rel = {
         :type         => :has_many_through,
         :table        => 'regions',
         :link_table   => 'region_countries',
         :link_key     => 'country_code_alpha_2',
         :link_field   => 'region_code',
-        :table_key    => 'code', 
+        :table_key    => 'code',
         :this_key     => 'code_alpha_2',
         :table_fields => 'code,name',
       }
 
       expect(@generic_dal.get_relation_tables(rel)).to eq(["countries","region_countries","regions"])
+    end
+
+    it 'should throw if unknown relation' do
+      @generic_dal.table_name = "countries"
+
+      rel = {
+        :type         => :unknown,
+      }
+
+      expect{@generic_dal.get_relation_tables(rel)}.to raise_error("Unknown Relation type unknown")
     end
   end
 
@@ -1034,11 +1090,11 @@ describe CrudService::Dal do
     it 'should return the table name for a single relations' do
       @generic_dal.table_name = 'test1'
 
-       @generic_dal.relations = {
-        'countries' => { 
-          :type         => :has_one, 
+      @generic_dal.relations = {
+        'countries' => {
+          :type         => :has_one,
           :table        => 'countries',
-          :table_key    => 'default_currency_code', 
+          :table_key    => 'default_currency_code',
           :this_key     => 'code',
           :table_fields => 'code_alpha_2,name',
         },
@@ -1052,27 +1108,27 @@ describe CrudService::Dal do
       @generic_dal.table_name = 'test1'
 
       @generic_dal.relations = {
-        'countries' => { 
-          :type         => :has_one, 
+        'countries' => {
+          :type         => :has_one,
           :table        => 'countries',
-          :table_key    => 'default_currency_code', 
+          :table_key    => 'default_currency_code',
           :this_key     => 'code',
           :table_fields => 'code_alpha_2,name',
         },
-        'countries2' => { 
-          :type         => :has_many, 
+        'countries2' => {
+          :type         => :has_many,
           :table        => 'countries',
-          :table_key    => 'default_currency_code', 
+          :table_key    => 'default_currency_code',
           :this_key     => 'code',
           :table_fields => 'code_alpha_2,name',
         },
-        'regions' => { 
+        'regions' => {
           :type         => :has_many_through,
           :table        => 'regions',
           :link_table   => 'region_countries',
           :link_key     => 'country_code_alpha_2',
           :link_field   => 'region_code',
-          :table_key    => 'code', 
+          :table_key    => 'code',
           :this_key     => 'code_alpha_2',
           :table_fields => 'code,name',
         }
@@ -1099,10 +1155,10 @@ describe CrudService::Dal do
 
       expect(@mock_memcache).to receive(:get).ordered.with('prefix-test_table-version').and_return(1)
       expect(@mock_memcache).to receive(:incr).ordered.with('prefix-test_table-version',1,nil)
-      
+
       expect(@mock_memcache).to receive(:get).ordered.with('prefix-test_table-version').and_return(1)
       expect(@mock_memcache).to receive(:get).ordered.and_return([{ "field_one" => "one","id"=>1 }])
-            
+
       @generic_dal.insert(testdata)
     end
 
@@ -1122,12 +1178,31 @@ describe CrudService::Dal do
 
       expect(@mock_memcache).to receive(:get).ordered.with('prefix-test_table-version').and_return(1)
       expect(@mock_memcache).to receive(:incr).ordered.with('prefix-test_table-version',1,nil)
-      
+
       expect(@mock_memcache).to receive(:get).ordered.with('prefix-test_table-version').and_return(1)
       expect(@mock_memcache).to receive(:get).ordered.and_return([{ "field_one" => "one","id"=>1 }])
       expect(@mock_memcache).not_to receive(:last_id)
 
       @generic_dal.insert(testdata)
+    end
+
+    it 'should log to error when insert fails' do
+      testdata = { "field_one" => "one" }
+
+      @generic_dal.table_name = "test_table"
+      @generic_dal.fields = {
+        "field_one" => { :type => :integer }
+      }
+      @generic_dal.auto_primary_key = true
+
+      query = "INSERT INTO `test_table` (`field_one`) VALUES ('one')"
+
+      expect(@mock_mysql).to receive(:query) { raise "TestException" }
+
+      expect(@generic_dal).not_to receive(:get_one)
+      expect(@mock_log).to receive(:error).with("TestException")
+
+      expect(@generic_dal.insert(testdata)).to be_nil()
     end
   end
 
@@ -1144,14 +1219,32 @@ describe CrudService::Dal do
       query = "UPDATE `test_table` SET `field_one` = 'two' WHERE (`code` = 2)"
 
       expect(@mock_mysql).to receive(:query).ordered.with(query)
-      
+
       expect(@mock_memcache).to receive(:get).ordered.with('prefix-test_table-version').and_return(1)
       expect(@mock_memcache).to receive(:incr).ordered.with('prefix-test_table-version',1,nil)
-      
+
       expect(@mock_memcache).to receive(:get).ordered.with('prefix-test_table-version').and_return(1)
       expect(@mock_memcache).to receive(:get).ordered.and_return([{ "field_one" => "two","id"=>2}])
-      
+
       @generic_dal.update_by_primary_key(2, testdata)
+    end
+
+    it 'should log to error when db update fails' do
+      testdata = { "field_one" => "two" }
+
+      @generic_dal.table_name = "test_table"
+      @generic_dal.primary_key = "code"
+      @generic_dal.fields = {
+        "field_one" => { :type => :integer }
+      }
+
+      query = "UPDATE `test_table` SET `field_one` = 'two' WHERE (`code` = 2)"
+
+      expect(@mock_mysql).to receive(:query) { raise "TestException" }
+      expect(@generic_dal).not_to receive(:get_one)
+      expect(@mock_log).to receive(:error).with("TestException")
+
+      expect(@generic_dal.update_by_primary_key(2, testdata)).to eq(false)
     end
   end
 
@@ -1166,8 +1259,104 @@ describe CrudService::Dal do
       expect(@mock_mysql).to receive(:query).ordered.with(query)
       expect(@mock_memcache).to receive(:get).ordered.with('prefix-test_table-version').and_return(1)
       expect(@mock_memcache).to receive(:incr).ordered.with('prefix-test_table-version',1,nil)
-      
+
       @generic_dal.delete_by_primary_key('three')
+    end
+
+    it 'should log to error when db delete fails' do
+
+      @generic_dal.table_name = "test_table"
+      @generic_dal.primary_key = "code"
+
+      query = "DELETE FROM `test_table` WHERE (`code` = 'three')"
+
+      expect(@mock_mysql).to receive(:query) { raise "TestException" }
+      expect(@generic_dal).not_to receive(:get_one)
+      expect(@mock_log).to receive(:error).with("TestException")
+
+      expect(@generic_dal.delete_by_primary_key('three')).to eq(false)
+    end
+  end
+
+  describe '#get_all_by_query_as_hash' do
+    it 'should call map_to_hash_by_primary_key / get_all_by_query from query' do
+
+      expect(@generic_dal).to receive(:get_all_by_query).with("query").and_return("results")
+      expect(@generic_dal).to receive(:map_to_hash_by_primary_key).with("results").and_return("hashed_results")
+      expect(@generic_dal.get_all_by_query_as_hash("query")).to eq("hashed_results")
+    end
+  end
+
+  describe '#get_relation_data_as_hash' do
+    it 'should return {} if no relations exist' do
+      @generic_dal.relations = nil
+      expect(@generic_dal.get_relation_data_as_hash("query")).to eq({})
+      @generic_dal.relations = {}
+      expect(@generic_dal.get_relation_data_as_hash("query")).to eq({})
+    end
+
+    it 'should call get_includes' do
+      @generic_dal.relations = { "name" => OpenStruct.new()}
+
+      includes = OpenStruct.new()
+      expect(@generic_dal).to receive(:get_includes).with("query").and_return(includes)
+      expect(includes).to receive(:find_index).with("name").and_return(nil)
+
+      expect(@generic_dal.get_relation_data_as_hash("query")).to eq({})
+    end
+
+    it 'should set up correct hash' do
+      @generic_dal.relations = { "testname" => OpenStruct.new()}
+
+      includes = OpenStruct.new()
+      expect(@generic_dal).to receive(:get_includes).with("testquery").and_return(includes)
+      expect(includes).to receive(:find_index).with("testname").and_return(true)
+      expect(@generic_dal).to receive(:get_relation_query_sql).with(includes,"testquery").and_return("testsql")
+      expect(@generic_dal).to receive(:get_relation_tables).with(includes).and_return("tables")
+      expect(@generic_dal).to receive(:cached_query).with("testsql", "tables").and_return("testdata")
+      expect(@generic_dal).to receive(:map_to_hash_of_arrays_by_key).with("testdata", "_table_key").and_return("testreldata")
+      expect(@generic_dal).to receive(:remove_key_from_hash_of_arrays!).with("testreldata", "_table_key").and_return("testreldata")
+
+      expect(@generic_dal.get_relation_data_as_hash("testquery")).to eq({"testname"=>"testreldata"})
+    end
+  end
+
+  describe '#map_in_included_relations!' do
+    it 'should call get_relation_data_as_hash' do
+
+      result = OpenStruct.new
+      expect(@generic_dal).to receive(:get_relation_data_as_hash).with("testquery")
+      expect(result).to receive(:each) {}
+
+      @generic_dal.map_in_included_relations!(result,'testquery')
+    end
+
+    it 'should call get_relation_data_as_hash with generic relation' do
+      @generic_dal.relations = {
+        "one" => { :type=>:string, :this_key => 'one' },
+      }
+
+      dat = { "one" => "test" }
+      results = [ { "one" => 1 } ]
+
+      expect(@generic_dal).to receive(:get_relation_data_as_hash).with("testquery").and_return(dat)
+      @generic_dal.map_in_included_relations!(results,'testquery')
+
+      expect(results[0]).to eq({"one"=>"e"})
+    end
+
+    it 'should call get_relation_data_as_hash with has_one relation' do
+      @generic_dal.relations = {
+        "one" => { :type=>:has_one, :this_key => 'one' },
+      }
+
+      dat = { "one" => "test" }
+      results = [ { "one" => 1 } ]
+
+      expect(@generic_dal).to receive(:get_relation_data_as_hash).with("testquery").and_return(dat)
+      @generic_dal.map_in_included_relations!(results,'testquery')
+
+      expect(results[0]).to eq({"one"=>"e"})
     end
   end
 

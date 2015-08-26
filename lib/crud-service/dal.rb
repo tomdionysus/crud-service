@@ -229,7 +229,7 @@ module CrudService
 
     # Get data for included relations for a query
     def get_relation_data_as_hash(query) 
-      return {} if @relations.nil?
+      return {} if @relations.nil? or @relations.empty?
 
       includes = get_includes(query)
 
@@ -310,6 +310,7 @@ module CrudService
         return get_has_many_through_relation_query_sql(relation, query)
       else
         @log.error("Relation type #{relation[:type]} undefined!")
+        nil
       end
     end
 
@@ -353,7 +354,7 @@ module CrudService
       when :has_many_through
         return [@table_name, relation[:table], relation[:link_table]].sort
       else
-        throw "Unknown Relation type #{relation.type}"
+        raise "Unknown Relation type #{relation[:type]}"
       end
     end
 
