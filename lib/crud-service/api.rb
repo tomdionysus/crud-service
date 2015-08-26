@@ -1,7 +1,8 @@
 module CrudService
+  # This mixin provides a static methods to configure a sinatra class with the
+  # provided resource name, service and api_options
   module Api
-    # This mixin provides a static method, crud_api, to configure a sinatra class with the
-    # provided resource name, service and api_options
+    # Set up full CRUD API functionality on the given resource
     def crud_api(resource_name, service_name, primary_key_name, api_options = {})
       api_options = get_defaults(api_options)
 
@@ -19,6 +20,7 @@ module CrudService
       end
     end
 
+    # Set up OPTIONS functionality on the given resource
     def crud_options(resource_name, api_options = {})
       api_options = get_defaults(api_options)
       options '/'+resource_name do
@@ -26,6 +28,7 @@ module CrudService
       end
     end
 
+    # Set up UPDATE/put functionality on the given resource
     def crud_put(resource_name, service_name, primary_key_name, api_options = {})
       api_options = get_defaults(api_options)
       put '/'+resource_name+'/:'+primary_key_name do
@@ -55,6 +58,7 @@ module CrudService
       end
     end
 
+    # Set up GET/get_one functionality on the given resource
     def crud_get(resource_name, service_name, primary_key_name, api_options = {})
       api_options = get_defaults(api_options)
       get '/'+resource_name+'/:'+primary_key_name do
@@ -69,6 +73,7 @@ module CrudService
       end
     end
 
+    # Set up GET/get_all functionality on the given resource
     def crud_get_all(resource_name, service_name, api_options = {})
       api_options = get_defaults(api_options)
       get '/'+resource_name do
@@ -83,6 +88,7 @@ module CrudService
       end
     end
 
+    # Set up DELETE functionality on the given resource
     def crud_delete(resource_name, service_name, primary_key_name, api_options = {})
       api_options = get_defaults(api_options)
       delete '/'+resource_name+'/:'+primary_key_name do
@@ -98,6 +104,7 @@ module CrudService
       end
     end
 
+    # Set up POST/insert functionality on the given resource
     def crud_post(resource_name, service_name, primary_key_name, api_options = {})
       api_options = get_defaults(api_options)
       post '/'+resource_name do
@@ -127,6 +134,7 @@ module CrudService
       end
     end
 
+    # Return the given options with defaults set
     def get_defaults(api_options)
       defaults = {
         :enable_read => true,
