@@ -15,7 +15,7 @@ module CrudService
 
       if api_options[:enable_read]
         crud_get(resource_name, service_name, primary_key_name, api_options) if api_options[:enable_get]
-        crud_get_all(resource_name, service_name, primary_key_name, api_options) if api_options[:enable_get_all]
+        crud_get_all(resource_name, service_name, api_options) if api_options[:enable_get_all]
       end
     end
 
@@ -57,6 +57,20 @@ module CrudService
 
     def crud_get(resource_name, service_name, primary_key_name, api_options = {})
       api_options = get_defaults(api_options)
+      get '/'+resource_name+'/:'+primary_key_name do
+        service = settings.send(service_name)
+
+        sanitize_params(params)
+        return 400 unless service.valid_query?(params)
+
+        record = service.get_one_by_query(params)
+        return 404 if record.nil?
+        JSON.fast_generate record
+      end
+    end
+
+    def crud_get_all(resource_name, service_name, api_options = {})
+      api_options = get_defaults(api_options)
       get '/'+resource_name do
         service = settings.send(service_name)
 
@@ -69,20 +83,6 @@ module CrudService
       end
     end
 
-    def crud_get_all(resource_name, service_name, primary_key_name, api_options = {})
-      api_options = get_defaults(api_options)
-      get '/'+resource_name+'/:'+primary_key_name do
-        service = self.settings.send(service_name)
-
-        sanitize_params(params)
-        return 400 unless service.valid_query?(params)
-
-        record = service.get_one_by_query(params)
-        return 404 if record.nil?
-        JSON.fast_generate record
-      end
-    end
-
     def crud_delete(resource_name, service_name, primary_key_name, api_options = {})
       api_options = get_defaults(api_options)
       delete '/'+resource_name+'/:'+primary_key_name do
@@ -92,7 +92,7 @@ module CrudService
         return 404 unless service.exists_by_primary_key?(params[primary_key_name.to_sym])
 
         # Do Delete
-        return 400 unless service.delete_by_primary_key(params[primary_key_name.to_sym])
+        return 500 unless service.delete_by_primary_key(params[primary_key_name.to_sym])
 
         204
       end
@@ -120,7 +120,7 @@ module CrudService
         record = service.insert(data)
 
         # Other Error
-        return 500 if record == false
+        return 500 if record.nil?
 
         # Output new record
         JSON.fast_generate record

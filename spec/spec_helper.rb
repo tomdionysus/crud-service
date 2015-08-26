@@ -1,6 +1,8 @@
 require "dotenv"
 Dotenv.load
 
+require 'ostruct'
+
 module Helpers
   def mysql_mock
     mysql = double("Mysql2")

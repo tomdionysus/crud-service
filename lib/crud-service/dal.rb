@@ -426,7 +426,7 @@ module CrudService
         queryresult = @mysql.query(query)
       rescue Exception => e
         @log.error("#{e}")
-        return false
+        return nil
       end
 
       expire_table_cache(get_all_related_tables)
